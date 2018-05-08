@@ -1,0 +1,26 @@
+<table border='1'>
+	<tr>
+		<td>ID</td>
+		<td>Help</td>
+		<td>Revenue Last Month=</td>
+		<td>Mobile Number</td>
+		<td>Client</td>
+		<td>Income Goal</td>
+		<td>Date</td>
+		<td>Year</td>
+	</tr>	
+	<%@data.each do |r|%>
+		<tr>
+			<td><%= r.id %></td>
+			<td><%= r.help %></td>
+			<td><%= r.revenue_last_month %></td>
+			<td><%= r.mobile_number %></td>
+			<td><%= r.client_record %></td>
+			<td><%= r.income_goal_this_month %></td>
+			<td><%= r.date %></td>
+			<td><%= r.year %></td>
+		</tr>
+	<%end%>
+</table>
+
+<%= link_to 'Back', '/' %>

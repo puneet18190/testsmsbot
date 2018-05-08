@@ -1,0 +1,26 @@
+<table border='1'>
+	<tr>
+		<td>ID</td>
+		<td>Mobile</td>
+		<td>First Name</td>
+		<td>Last Name</td>
+		<td>Email</td>
+		<td>Avg Revenue</td>
+		<td>Results</td>
+		<td></td>
+	</tr>	
+	<%@records.each do |r|%>
+		<tr>
+			<td><%= r.id %></td>
+			<td><%= r.mobile %></td>
+			<td><%= r.first_name %></td>
+			<td><%= r.last_name %></td>
+			<td><%= r.email %></td>
+			<td><%= r.all_time_average_revenue %></td>
+			<td><%= r.results %></td>
+			<td><%= link_to 'Results', '/results?client='+r.id %></td>
+		</tr>
+	<%end%>
+</table>
+
+<%= link_to 'Send SMS', '/send_sms' %>

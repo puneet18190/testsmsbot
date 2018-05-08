@@ -1,0 +1,20 @@
+curl -X POST -d 'url=http://chatsmsbot.herokuapp.com/test&event=sub_tag(959)' 'http://api.ontraport.com/1/Webhook/subscribe' \
+    --header 'Content-Type: application/x-www-form-urlencoded' \
+    --header 'Api-Key: tM5kwyvGJJktnmL' \
+    --header 'Api-Appid: 2_429_9mcOxi1n5'
+
+
+curl -X PUT --header 'Content-Type: application/x-www-form-urlencoded' --header 'Accept: application/json' --header 'Api-Key: tM5kwyvGJJktnmL' --header 'Api-Appid: 2_429_9mcOxi1n5' -d 'id=959' 'https://api.ontraport.com/1/Contacts'    
+
+
+curl -X GET 'http://api.ontraport.com/1/Webhooks?listFields=id%2Cevent%2Curl' \
+    --header 'Api-Key: tM5kwyvGJJktnmL' \
+    --header 'Api-Appid: 2_429_9mcOxi1n5'
+
+
+curl -X DELETE 'https://api.ontraport.com/1/Contact?id=17' \
+    --header 'Api-Key: tM5kwyvGJJktnmL' \
+    --header 'Api-Appid: 2_429_9mcOxi1n5'    
+
+
+client = OntraportApi::Client.new('2_429_9mcOxi1n5','tM5kwyvGJJktnmL')
