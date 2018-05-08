@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180504113338) do
+ActiveRecord::Schema.define(version: 20180508055451) do
 
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
@@ -64,6 +64,7 @@ ActiveRecord::Schema.define(version: 20180504113338) do
     t.string "timezone"
     t.string "ontraport_id"
     t.string "all_month_average_income"
+    t.datetime "sent_at"
   end
 
   create_table "data", force: :cascade do |t|
