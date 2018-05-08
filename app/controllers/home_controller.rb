@@ -10,11 +10,15 @@ class HomeController < ApplicationController
     @client = Airtable::Client.new(ENV['AIRTABLE_API_KEY'])
     @table = @client.table(ENV['AIRTABLE_APP_KEY'], "Clients")
     client = @table.find(params[:client])
-    results = client.results
+    results = client["results"]
     @data = []
     @results = @client.table(ENV['AIRTABLE_APP_KEY'], "Results")
-    results.each do |r|
-      @data << @results.find(r)
+    if results.present?
+      results.each do |r|
+        @data << @results.find(r)
+      end
+    else
+      @data = []
     end
   end
 
