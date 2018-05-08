@@ -15,8 +15,8 @@ task send_sms: :environment do
       t2=Time.zone.local(year,month,date,hour,min)
 
       if c.sent_at.blank?
-        if ( t1.strftime('%D') == t2.strftime('%D') && t2.strftime('%T') < t1.strftime('%T'))
-        #if ( t1.strftime('%A') == t2.strftime('%A') && t1.strftime('%d').to_i <= 7 && t2.strftime('%T') < t1.strftime('%T')) #condition to send sms at every first monday
+        # if ( t1.strftime('%D') == t2.strftime('%D') && t2.strftime('%T') < t1.strftime('%T'))
+        if ( t1.strftime('%A') == t2.strftime('%A') && t1.strftime('%d').to_i <= 7 && t2.strftime('%T') < t1.strftime('%T')) #condition to send sms at every first monday
       
           if c.results.blank?
             message = "Hey #{c.first_name}, I'm #BeltBot, the Black Belt SMS bot. I'm programmed to help you make your monthly income go up, and get you help when you need it. First, let's get a baseline. What was your total revenue over the past 12 months?"
