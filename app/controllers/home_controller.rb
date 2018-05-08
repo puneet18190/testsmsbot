@@ -43,52 +43,64 @@ class HomeController < ApplicationController
       case client.sms_status
       when 0
         message = params['Body'].gsub('$','').gsub(',','').gsub('k','000').gsub('K','000')
-        from = params['From'].gsub('+','')
-        avg = message
-        puts " ???????? #{avg} ?????????"
-        avg = avg.blank? ? "" : (avg.to_f/12).round
-        puts " ???????? #{avg} ?????????"
-        Client.send_sms("Ok, so that's about #{avg} per month. Perfect. And, #{client.first_name} what’s your income goal for #{DateTime.now.strftime('%B')}?", client.mobile)
-        client.update(sms_status: 1)
-        client.update(baseline_12_month_income: message)
-        sync_airtable('update_client', client.clientid, {"Baseline 12 Month Income"=> message.to_i, "Baseline 12 Month Average Income"=>avg.to_i})
+        if valid_message(message)
+          from = params['From'].gsub('+','')
+          avg = message
+          puts " ???????? #{avg} ?????????"
+          avg = avg.blank? ? "" : (avg.to_f/12).round
+          puts " ???????? #{avg} ?????????"
+          Client.send_sms("Ok, so that's about #{avg} per month. Perfect. And, #{client.first_name} what’s your income goal for #{DateTime.now.strftime('%B')}?", client.mobile)
+          client.update(sms_status: 1)
+          client.update(baseline_12_month_income: message)
+          sync_airtable('update_client', client.clientid, {"Baseline 12 Month Income"=> message.to_i, "Baseline 12 Month Average Income"=>avg.to_i})
+        else
+          Client.send_sms("That's not an input I understand. Please respond in dollars - e.g. $50k", client.mobile)
+        end
       when 1
         message = params['Body'].gsub('$','').gsub(',','').gsub('k','000').gsub('K','000')
-        from = params['From'].gsub('+','')
-        if client.results.blank?
-          prev_month =  (DateTime.now-1.month).strftime('%m').to_i
-          month =  DateTime.now.strftime('%m').to_i
+        if valid_message(message)
+          from = params['From'].gsub('+','')
+          if client.results.blank?
+            prev_month =  (DateTime.now-1.month).strftime('%m').to_i
+            month =  DateTime.now.strftime('%m').to_i
+          else
+            prev_month =  client.results.last.month.to_i
+            month =  client.results.last.month.to_i+1
+          end
+          Client.send_sms("Roger that, #{params['Body']} for #{Date::MONTHNAMES[month]}. And what did you bank in #{Date::MONTHNAMES[prev_month]}?", client.mobile)
+          client.update(sms_status: 2)
+          client.results.create(income_goal: message, mobile_number: from, month: month)
+          sync_airtable('create', client.clientid, {income_goal_this_month: message.to_i, mobile_number: from, month: month.to_i, date: Time.zone.now.strftime('%Y-%m-%d'), year: Time.zone.now.strftime('%Y').to_i})
         else
-          prev_month =  client.results.last.month.to_i
-          month =  client.results.last.month.to_i+1
+          Client.send_sms("That's not an input I understand. Please respond in dollars - e.g. $50k", client.mobile)
         end
-        Client.send_sms("Roger that, #{params['Body']} for #{Date::MONTHNAMES[month]}. And what did you bank in #{Date::MONTHNAMES[prev_month]}?", client.mobile)
-        client.update(sms_status: 2)
-        client.results.create(income_goal: message, mobile_number: from, month: month)
-        sync_airtable('create', client.clientid, {income_goal_this_month: message.to_i, mobile_number: from, month: month.to_i, date: Time.zone.now.strftime('%Y-%m-%d'), year: Time.zone.now.strftime('%Y').to_i})
       when 2
         message = params['Body'].gsub('$','').gsub(',','').gsub('k','000').gsub('K','000')
-        last_revenue = client.results.all[-2].try(:revenue_last_month)
-        if last_revenue.present? 
-          diff = message.to_f - last_revenue.to_f
-          puts ">>>>>>>>> Diff #{diff}"
-          if diff > 3000
-            Client.send_sms('Cool! Looks like things are headed in the right direction. Anything you need help with?', client.mobile)
-          elsif diff.to_i.between?(-3000, 3000)
-            Client.send_sms(' Hmmm, those numbers seem a bit flat, what do you need most right now ?', client.mobile)
+        if valid_message(message)
+          last_revenue = client.results.all[-2].try(:revenue_last_month)
+          if last_revenue.present? 
+            diff = message.to_f - last_revenue.to_f
+            puts ">>>>>>>>> Diff #{diff}"
+            if diff > 3000
+              Client.send_sms('Cool! Looks like things are headed in the right direction. Anything you need help with?', client.mobile)
+            elsif diff.to_i.between?(-3000, 3000)
+              Client.send_sms(' Hmmm, those numbers seem a bit flat, what do you need most right now ?', client.mobile)
+            else
+              Client.send_sms(' Hmmm, looks like those numbers aren’t going up... What do you need most right now?', client.mobile)
+            end
           else
-            Client.send_sms(' Hmmm, looks like those numbers aren’t going up... What do you need most right now?', client.mobile)
+            Client.send_sms("Gotcha. Thanks for the replies. I'm in touch with Taki and the Sherpas. Need anything right now?", client.mobile)
           end
+          client.update(sms_status: 3)
+          client.results.last.update(revenue_last_month: message)
+          sync_airtable('update', client.clientid, {"Revenue Last Month" => message.to_i})
+          all_month_average_income = client.get_all_month_average_income
+          run_rate = client.get_run_rate
+          sync_airtable('update_client_run_rate', client.clientid, {"12 Month Average Income" => all_month_average_income.to_i, "Run Rate" => run_rate.to_i})
+          send_ontraport({id: client.ontraport_id, all_month_average_income: all_month_average_income, run_rate: run_rate}) if client.ontraport_id.present?
         else
-          Client.send_sms("Gotcha. Thanks for the replies. I'm in touch with Taki and the Sherpas. Need anything right now?", client.mobile)
+          Client.send_sms("That's not an input I understand. Please respond in dollars - e.g. $50k", client.mobile)
         end
-        client.update(sms_status: 3)
-        client.results.last.update(revenue_last_month: message)
-        sync_airtable('update', client.clientid, {"Revenue Last Month" => message.to_i})
-        all_month_average_income = client.get_all_month_average_income
-        run_rate = client.get_run_rate
-        sync_airtable('update_client_run_rate', client.clientid, {"12 Month Average Income" => all_month_average_income.to_i, "Run Rate" => run_rate.to_i})
-        send_ontraport({id: client.ontraport_id, all_month_average_income: all_month_average_income, run_rate: run_rate}) if client.ontraport_id.present?
       when 3
         message = params['Body'].to_s
         client.update(sms_status: 4)
@@ -181,6 +193,7 @@ class HomeController < ApplicationController
       puts e.message
     end
   end
+
   def test
     begin
       params[:request_type]=request.env['REQUEST_METHOD']
@@ -203,6 +216,10 @@ class HomeController < ApplicationController
     rescue Exception => e
       render json: {status: false}
     end
+  end
+
+  def valid_message(message)
+    return message.scan(/\d+/).first.present?
   end
 end
 
