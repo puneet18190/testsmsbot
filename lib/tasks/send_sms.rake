@@ -32,6 +32,7 @@ task send_sms: :environment do
     rescue Exception => e
       puts ">>>>>>>>>>Exception In Send SMS <<<<<<<<<<<<<<"
       puts ">>> #{e.message} <<<"
+      Bugsnag.notify(e)
     end
   end
 end

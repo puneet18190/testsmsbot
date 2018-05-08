@@ -63,3 +63,4 @@ gem 'devise'
 gem 'rails_12factor', group: :production
 gem 'ontraport', '~> 0.1'
 gem 'ontraport_api'
+gem 'bugsnag'
