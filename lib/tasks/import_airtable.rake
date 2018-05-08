@@ -1,8 +1,8 @@
 require 'airtable'
 task import_airtable: :environment do
 	@client = Airtable::Client.new('keyzr5WzBs1ucj5P6')
-	@table = @client.table('tblWlWBcJe3KFyyQY', "Clients")
-	@results = @client.table('tblWlWBcJe3KFyyQY', "Results")	
+	@table = @client.table('appq5wphe6erHweDa', "Clients")
+	@results = @client.table('appq5wphe6erHweDa', "Results")	
 	@records = @table.records
 	@records.each do |c|
 		check_client = Client.where(clientid: c.id)
